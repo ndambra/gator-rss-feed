@@ -1,0 +1,35 @@
+import { setUser } from "../config.js";
+import { createUser, deleteAllUsers, getUserByName } from "../lib/db/queries/users.js";
+
+export async function handlerLogin(cmdName: string, ...args: string[]) {
+    if (!args || args.length == 0) {
+        console.log("Invalid: command 'login' requires <username>");
+        process.exit(1);
+    }
+    const userName = args[0];
+    const userExists = await getUserByName(userName);
+    if (!userExists) {
+        throw new Error("Username does not exist.");
+    }
+    setUser(userName);
+    console.log(`User set: ${userName}`);
+}
+
+export async function handlerRegister(cmdName: string, ...args: string[]) {
+    if (!args || args.length == 0) {
+        console.log("Invalid: command 'register' requires <username>");
+        process.exit(1);
+    }
+    const userName = args[0];
+    const userExists = await getUserByName(userName);
+    if (userExists) {
+        throw new Error("Register fail. Username already exists.");
+    }
+    const newUser = await createUser(userName);
+    setUser(userName);
+    console.log(`New user Created: ${newUser.name}`);
+}
+
+export async function handlerReset(cmdName: string, ...args: string[]) {
+    await deleteAllUsers();   
+}
