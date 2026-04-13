@@ -7,8 +7,6 @@ type Config = {
     currentUsername: string;
 }
 
-type CommandHandler = (cmdName: string, ...args: string[]) => void;
-
 const configFile = ".gatorconfig.json";
 
 export function setUser(username: string) {
