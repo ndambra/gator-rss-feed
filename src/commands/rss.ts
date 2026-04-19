@@ -1,19 +1,13 @@
 import { readConfig } from "../config.js";
 import { getUserByName } from "../lib/db/queries/users.js";
-import { createFeed, getFeeds } from "../lib/db/queries/rssfeeds.js";
+import { createFeed, createFeedFollow, deleteFeedFollow, getFeedByUrl, getFeedFollowsForUser, getFeeds } from "../lib/db/queries/rssfeeds.js";
 import { Feed, User } from "../lib/db/schema.js";
 
-export async function handlerAddFeed(cmdName: string, ...args: string[]) {
+export async function handlerAddFeed(cmdName: string, user: User, ...args: string[]) {
     if (args.length !== 2) {
         throw new Error(`usage: ${cmdName} <feed_name> <url>`);
     }
-    const config = readConfig();
-    const user = await getUserByName(config.currentUsername);
-
-    if (!user) {
-        throw new Error(`User ${config.currentUsername} not found`);
-    }
-
+    
     const feedName = args[0];
     const url = args[1];
 
@@ -23,6 +17,8 @@ export async function handlerAddFeed(cmdName: string, ...args: string[]) {
     }
     console.log("Feed created successfully");
     printFeed(feed, user);
+    const result = await createFeedFollow(feed.id, user.id);
+    console.log(`User ${user.name} followed ${result.feedName}`);
 }
 
 export async function handlerFeeds(cmdName: string, ...args: string[]) {
@@ -32,6 +28,41 @@ export async function handlerFeeds(cmdName: string, ...args: string[]) {
         console.log(`URL: ${feed.url}`);
         console.log(`User: ${feed.userName}`);
     })
+}
+
+export async function handlerFollow(cmdName: string, user: User, ...args: string[]) {
+    if (args.length !== 1) {
+        throw new Error(`usage ${cmdName} <url>`);
+    }
+
+    const url = args[0];
+    const feed = await getFeedByUrl(url);
+
+    const feedFollow = await createFeedFollow(feed.id, user.id);
+    console.log(`User ${user.name} followed ${feedFollow.feedName}`);
+}
+
+export async function handlerFollowing(cmdName: string, user: User, ...args: string[]) {
+    const following = await getFeedFollowsForUser(user.name);
+}
+
+export async function handlerUnfollow(cmdName: string, user: User, ...args: string[]) {
+    if (args.length != 1) {
+        throw new Error(`usage ${cmdName} <url>`);
+    }
+
+    const url = args[0];
+    const feed = await getFeedByUrl(url);
+    if (!feed) {
+        throw new Error(`Feed not found`);
+    }
+
+    const deletedFollow = await deleteFeedFollow(feed.id, user.id);
+    if (deletedFollow) {
+        console.log(`${user.name} unfollowed ${feed.name}`);
+    } else {
+        throw new Error('Feed not unfollowed');
+    }
 }
 
 function printFeed(feed: Feed, user: User) {
