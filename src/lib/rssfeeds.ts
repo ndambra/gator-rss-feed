@@ -1,6 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 
-type RSSFeed = {
+export type RSSFeed = {
   channel: {
     title: string;
     link: string;
@@ -9,7 +9,7 @@ type RSSFeed = {
   };
 };
 
-type RSSItem = {
+export type RSSItem = {
   title: string;
   link: string;
   description: string;
@@ -30,36 +30,17 @@ export async function fetchFeed(feedUrl: string) {
         }
         
         let text = await response.text();
-        const rssFeed: RSSFeed = parseXml(text);
-        printRSSFeedObject(rssFeed);
+        return parseXml(text);
     } catch (error) {
         console.log(`Error occured: ${error}`)
     }
-    
-}
-
-function printRSSFeedObject(obj: RSSFeed) {
-    console.log("\n  channel:{");
-    console.log(`  title: ${obj.channel.title},`);
-    console.log(`  link: ${obj.channel.link},`);
-    console.log(`  description: ${obj.channel.description},`);
-    console.log(`  item: [\n`);
-    obj.channel.item.forEach(rssItem => {
-        console.log(`  {`);
-        console.log(`    title: ${rssItem.title},`)
-        console.log(`    link: ${rssItem.link},`)
-        console.log(`    pubDate: ${rssItem.pubDate},`)
-        console.log(`    description: ${rssItem.description},`)
-    })
-    
 }
 
 function parseXml(text: string): RSSFeed {
     const parser = new XMLParser();
     let rssObj = parser.parse(text);
-    // console.log(rssObj);
 
-    let channel = rssObj.rss.channel;
+    let channel = rssObj.rss?.channel;
     if (!channel) {
         console.log("Error: Invalid Xml");
         throw new Error("Invalid xml")
@@ -104,12 +85,18 @@ function parseXml(text: string): RSSFeed {
     return rssFeed;
 }
 
-
-export async function handlerAgg(cmdName: string, ...args: string[]) {
-    const url = "https://www.wagslane.dev/index.xml";
-    // if (!args || args.length == 0) {
-    //     console.log("Invalid: command 'agg' requires <rssFeedURL>");
-    //     process.exit(1);
-    // }
-    await fetchFeed(url);
+function printRSSFeedObject(obj: RSSFeed) {
+    console.log("\n  channel:{");
+    console.log(`  title: ${obj.channel.title},`);
+    console.log(`  link: ${obj.channel.link},`);
+    console.log(`  description: ${obj.channel.description},`);
+    console.log(`  item: [\n`);
+    obj.channel.item.forEach(rssItem => {
+        console.log(`  {`);
+        console.log(`    title: ${rssItem.title},`)
+        console.log(`    link: ${rssItem.link},`)
+        console.log(`    pubDate: ${rssItem.pubDate},`)
+        console.log(`    description: ${rssItem.description},`)
+    })
+    
 }
