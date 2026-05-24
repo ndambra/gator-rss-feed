@@ -1,5 +1,3 @@
-import { readConfig } from "../config.js";
-import { getUserByName } from "../lib/db/queries/users.js";
 import { createFeed, createFeedFollow, deleteFeedFollow, getFeedByUrl, getFeedFollowsForUser, getFeeds } from "../lib/db/queries/rssfeeds.js";
 import { Feed, User } from "../lib/db/schema.js";
 
